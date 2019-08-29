@@ -10,6 +10,7 @@ gem 'rails', '~> 6.0.0'
 gem 'puma', '~> 3.11'
 # Use SCSS for stylesheets
 gem 'sass-rails', '~> 5'
+gem 'bootstrap-sass', '~> 3.4.1'
 # Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker
 gem 'webpacker', '~> 4.0'
 # Turbolinks makes navigating your web application faster. Read more: https://github.com/turbolinks/turbolinks
@@ -49,6 +50,9 @@ group :test do
   gem 'selenium-webdriver'
   # Easy installation and use of web drivers to run system tests with browsers
   gem 'webdrivers'
+  # Minitest
+  gem 'minitest'
+  gem 'minitest-reporters'
 end
 
 group :production do
