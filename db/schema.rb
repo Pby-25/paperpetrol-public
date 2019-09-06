@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_09_05_043128) do
+ActiveRecord::Schema.define(version: 2019_09_06_005735) do
 
   create_table "records", force: :cascade do |t|
     t.string "rating"
@@ -22,10 +22,12 @@ ActiveRecord::Schema.define(version: 2019_09_05_043128) do
   end
 
   create_table "requests", force: :cascade do |t|
+    t.integer "user_id"
+    t.string "place_id"
     t.integer "duration"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.integer "user_id"
+    t.index ["place_id"], name: "index_requests_on_place_id"
     t.index ["user_id"], name: "index_requests_on_user_id"
   end
 
@@ -56,5 +58,4 @@ ActiveRecord::Schema.define(version: 2019_09_05_043128) do
   end
 
   add_foreign_key "records", "stations"
-  add_foreign_key "requests", "users"
 end
