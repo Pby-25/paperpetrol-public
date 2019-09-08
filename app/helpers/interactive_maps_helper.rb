@@ -1,0 +1,2 @@
+module InteractiveMapsHelper
+end
