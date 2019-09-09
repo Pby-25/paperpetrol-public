@@ -36,9 +36,8 @@ function GoogleMaps(){
 
   return (
     <div>
-      <QueryMaps apiPromise={googlePromise} lat={-34} lng={150}/>
-      <StationMaps apiPromise={googlePromise} lat={-34} lng={150}/>
-      <StationMaps apiPromise={googlePromise} lat={-34} lng={150}/>
+      <QueryMaps mapsPromise={googlePromise} lat={-34} lng={150}/>
+      <StationTiles mapsPromise={googlePromise}/>
     </div>
     
   )
@@ -46,17 +45,35 @@ function GoogleMaps(){
 
 function QueryMaps(props){
   const [searchString, setSearchString] = useState("Type your next query");
+  const [myLocation, setMyLocation] = useState({
+    lat: props.lat, 
+    lng: props.lng
+  })
   const mapRef = useRef();
+  var map;
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(position) {
+      var pos = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude
+      };
+      setMyLocation(pos);
+    });
+  }
 
   useEffect( () => {
-    props.apiPromise.then((google) => {
-      new google.maps.Map(mapRef.current, {
-        center: {lat: props.lat, lng: props.lng},
-        zoom: 8
-      });
+    props.mapsPromise.then((google) => {
+      if (!map){
+        map = new google.maps.Map(mapRef.current, {
+          center: {lat: myLocation.lat, lng: myLocation.lng},
+          zoom: 8
+        });
+      } else {
+        map.setCenter(myLocation);
+      }
     })
-  }, [searchString])
-
+  }, [searchString, myLocation])
 
 
   return(
@@ -87,14 +104,46 @@ function QueryComponent(props){
   )
 }
 
+function StationTiles(props){
+  // Ajax call to server?
+  var stationResponses = ["ChIJd8BlQ2BZwokRAFUEcm_qrcA", "ChIJXUppRReuEmsRKy0s_W-x8Bc"];
+  return(
+    <div>
+      {stationResponses.map((stationResponse) =>
+        <StationMaps key={stationResponse}
+        mapsPromise = {props.mapsPromise}
+        placeId = {stationResponse}/>
+      )}
+    </div>
+  )
+}
+
+function geocodePlaceId(geocoder, map, placeId) {
+  geocoder.geocode({'placeId': placeId}, function(results, status) {
+    if (status === 'OK') {
+      if (results[0]) {
+        map.setZoom(11);
+        map.setCenter(results[0].geometry.location);
+      } else {
+        window.alert('No results found');
+      }
+    } else {
+      window.alert('Geocoder failed due to: ' + status);
+    }
+  });
+}
+
 function StationMaps(props){
   const mapRef = useRef();
 
-  props.apiPromise.then((google) => {
-    new google.maps.Map(mapRef.current, {
-      center: {lat: props.lat, lng: props.lng},
+  props.mapsPromise.then((google) => {
+    var geocoder = new google.maps.Geocoder;
+    var map = new google.maps.Map(mapRef.current, {
+      disableDefaultUI: true,
+      center: {lat: 0, lng: 0},
       zoom: 8
     });
+    geocodePlaceId(geocoder, map, props.placeId)
   })
   return (
     <div>
