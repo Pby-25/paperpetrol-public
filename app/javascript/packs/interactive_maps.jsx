@@ -1,15 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import ReactDOM from 'react-dom'
-import { resolveObject } from 'url';
 
-
-function initMap() {
-  
-  var map = new window.google.maps.Map(document.getElementById('map'), {
-    center: {lat: -34.397, lng: 150.644},
-    zoom: 8
-  });
-}
 
 function getGooleMapsApi(){
   // Load the Google Maps API
@@ -32,7 +23,6 @@ function getGooleMapsApi(){
 function GoogleMaps(){
   // const [googlePromise, setGooglePromise] = useState(getGooleMapsApi());
   var googlePromise = getGooleMapsApi();
-
 
   return (
     <div>
