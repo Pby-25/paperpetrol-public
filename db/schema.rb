@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_09_06_005735) do
+ActiveRecord::Schema.define(version: 2019_09_13_032647) do
 
   create_table "records", force: :cascade do |t|
     t.string "rating"
@@ -27,13 +27,13 @@ ActiveRecord::Schema.define(version: 2019_09_06_005735) do
     t.integer "duration"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
+    t.string "nickname"
     t.index ["place_id"], name: "index_requests_on_place_id"
+    t.index ["user_id", "place_id"], name: "index_requests_on_user_id_and_place_id", unique: true
     t.index ["user_id"], name: "index_requests_on_user_id"
   end
 
   create_table "stations", force: :cascade do |t|
-    t.string "name"
-    t.string "address"
     t.string "place_id"
     t.datetime "expiry_date"
     t.datetime "created_at", precision: 6, null: false
