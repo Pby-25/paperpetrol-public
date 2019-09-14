@@ -1,8 +1,29 @@
 import React, { useState, useEffect, useRef } from 'react'
 import ReactDOM from 'react-dom'
 
+function TestButton(){
+  const mydata = {
+    thing: {
+     field1: "qew",
+     field2: 123,
+   }}
 
-function getGooleMapsApi(){
+  const handleSubmit = () => {
+    $.ajax({
+      type: "POST", 
+      url: "/things",
+      data: mydata,
+      success: (repsonse)=> {console.log(response)},
+      error: (repsonse)=> {console.log(response)}
+    })
+  }
+
+  return (
+    <input type="submit" className="btn" value="TEST!!!!" onClick={handleSubmit}></input>
+  )
+}
+
+function getGoogleMapsApi(){
   // Load the Google Maps API
   var googlePromise = new Promise((resolve) => {
     window.initMap = () => {
@@ -20,12 +41,13 @@ function getGooleMapsApi(){
   return googlePromise
 }
 
-function GoogleMaps(){
-  // const [googlePromise, setGooglePromise] = useState(getGooleMapsApi());
-  var googlePromise = getGooleMapsApi();
+function App(){
+  // const [googlePromise, setGooglePromise] = useState(getGoogleMapsApi());
+  var googlePromise = getGoogleMapsApi();
 
   return (
     <div>
+      <TestButton />
       <QueryMaps mapsPromise={googlePromise} lat={-34} lng={150}/>
       <StationTiles mapsPromise={googlePromise}/>
     </div>
@@ -145,7 +167,7 @@ function StationMaps(props){
   
 document.addEventListener('DOMContentLoaded', () => {
   ReactDOM.render(
-    <GoogleMaps />,
+    <App />,
     document.getElementById('root'),
   )
 })

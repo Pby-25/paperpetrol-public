@@ -2,7 +2,7 @@
 
 import React from 'react'
 import ReactDOM from 'react-dom'
-
+import {$,jQuery} from 'jquery'
 class ContactBody extends React.Component {
     getGoogleMaps() {
       // If we haven't already defined the promise, define it
