@@ -23,7 +23,7 @@ ActiveRecord::Schema.define(version: 2019_09_15_022242) do
   end
 
   create_table "records", force: :cascade do |t|
-    t.integer "station_id"
+    t.bigint "station_id"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["station_id"], name: "index_records_on_station_id"
