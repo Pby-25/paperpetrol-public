@@ -10,14 +10,19 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2019_09_13_032647) do
+ActiveRecord::Schema.define(version: 2019_09_15_022242) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
-  create_table "records", force: :cascade do |t|
-    t.string "rating"
+  create_table "entries", force: :cascade do |t|
     t.decimal "price"
+    t.string "grade"
+    t.bigint "record_id"
+    t.index ["record_id"], name: "index_entries_on_record_id"
+  end
+
+  create_table "records", force: :cascade do |t|
     t.integer "station_id"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
@@ -60,5 +65,6 @@ ActiveRecord::Schema.define(version: 2019_09_13_032647) do
     t.index ["email"], name: "index_users_on_email", unique: true
   end
 
+  add_foreign_key "entries", "records"
   add_foreign_key "records", "stations"
 end
