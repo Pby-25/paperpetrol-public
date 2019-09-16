@@ -4,17 +4,20 @@ import ReactDOM from 'react-dom'
 function TestButton(){
   const mydata = {
     thing: {
-     field1: "qew",
+     placeId: "qew",
      field2: 123,
    }}
 
   const handleSubmit = () => {
     $.ajax({
       type: "POST", 
-      url: "/things",
+      url: "/requests",
       data: mydata,
       success: (repsonse)=> {console.log(response)},
-      error: (repsonse)=> {console.log(response)}
+      error: (repsonse)=> {console.log(response)},
+      beforeSend: (xhr) => {
+        xhr.setRequestHeader('X-CSRF-Token', $('meta[name="csrf-token"]').attr('content'))
+      },
     })
   }
 
