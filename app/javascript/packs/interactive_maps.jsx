@@ -8,18 +8,29 @@ function TestButton(){
      field2: 123,
    }}
 
+//   const handleSubmit = () => {
+//     $.ajax({
+//       type: "POST", 
+//       url: "/requests",
+//       data: mydata,
+//       success: (response)=> {console.log(response)},
+//       beforeSend: (xhr) => {
+//         xhr.setRequestHeader('X-CSRF-Token', $('meta[name="csrf-token"]').attr('content'))
+//       },
+//     })
+//   }
+
   const handleSubmit = () => {
-    $.ajax({
-      type: "POST", 
-      url: "/requests",
-      data: mydata,
-      success: (repsonse)=> {console.log(response)},
-      error: (repsonse)=> {console.log(response)},
-      beforeSend: (xhr) => {
-        xhr.setRequestHeader('X-CSRF-Token', $('meta[name="csrf-token"]').attr('content'))
-      },
-    })
-  }
+      $.ajax({
+        type: "GET", 
+        url: "/requests",
+        data: mydata,
+        success: (response)=> {console.log(response)},
+        beforeSend: (xhr) => {
+          xhr.setRequestHeader('X-CSRF-Token', $('meta[name="csrf-token"]').attr('content'))
+        },
+      })
+    }
 
   return (
     <input type="submit" className="btn" value="TEST!!!!" onClick={handleSubmit}></input>

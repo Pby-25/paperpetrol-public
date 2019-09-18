@@ -4,3 +4,7 @@ User.create!(name:  "admin",
              password_confirmation: "foobar",
              activated: true,
              activated_at: Time.zone.now)
+
+user = User.first
+req = user.requests.build({place_id: "Arial", duration: 555, nickname: "yo"})
+req.save
