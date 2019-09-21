@@ -3,34 +3,40 @@ import ReactDOM from 'react-dom'
 
 function TestButton(){
   const mydata = {
+    // "as":"Dsa"
     thing: {
      placeId: "qew",
      field2: 123,
-   }}
-
-//   const handleSubmit = () => {
-//     $.ajax({
-//       type: "POST", 
-//       url: "/requests",
-//       data: mydata,
-//       success: (response)=> {console.log(response)},
-//       beforeSend: (xhr) => {
-//         xhr.setRequestHeader('X-CSRF-Token', $('meta[name="csrf-token"]').attr('content'))
-//       },
-//     })
-//   }
+     gogogo: {
+       a:"sad",
+       e3: 22
+     }
+    }}
 
   const handleSubmit = () => {
-      $.ajax({
-        type: "GET", 
-        url: "/requests",
-        data: mydata,
-        success: (response)=> {console.log(response)},
-        beforeSend: (xhr) => {
-          xhr.setRequestHeader('X-CSRF-Token', $('meta[name="csrf-token"]').attr('content'))
-        },
-      })
-    }
+    $.ajax({
+      type: "POST", 
+      // contentType: "application/json; charset=utf-8",
+      url: "/requests",
+      data: mydata,
+      success: (response)=> {console.log(response)},
+      beforeSend: (xhr) => {
+        xhr.setRequestHeader('X-CSRF-Token', $('meta[name="csrf-token"]').attr('content'))
+      },
+    })
+  }
+
+  // const handleSubmit = () => {
+  //     $.ajax({
+  //       type: "GET", 
+  //       url: "/requests",
+  //       data: mydata,
+  //       success: (response)=> {console.log(response)},
+  //       beforeSend: (xhr) => {
+  //         xhr.setRequestHeader('X-CSRF-Token', $('meta[name="csrf-token"]').attr('content'))
+  //       },
+  //     })
+  //   }
 
   return (
     <input type="submit" className="btn" value="TEST!!!!" onClick={handleSubmit}></input>
