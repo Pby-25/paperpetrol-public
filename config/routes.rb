@@ -23,5 +23,8 @@ Rails.application.routes.draw do
   get '/main', to: 'interactive_maps#new'
   get '/experiment', to: 'interactive_maps#experiment'
   resources :requests,  only: [:index, :create, :update, :destroy]
-  resources :stations,  only: [:show]
+  # resources :stations,  only: [:show]
+  get '/stations', to: 'stations#show'
+  get '/fetch_stations', to: 'stations#fetch'
+  post '/add_record', to: 'stations#add_record'
 end

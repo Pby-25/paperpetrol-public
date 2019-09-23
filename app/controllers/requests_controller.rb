@@ -20,10 +20,10 @@ class RequestsController < ApplicationController
 
   def update
     # update expiry date
-    requested_station = Station.find_by(place_id: request_params[placeId])
+    requested_station = Station.find_by(place_id: request_params[:place_id])
     requested_station.expiry_date = Time.zone.now.advance(days: 15) 
     if requested_station.save
-      request = current_user.requests.find_by(place_id: request_params[placeId])
+      request = current_user.requests.find_by(place_id: request_params[:place_id])
       request.touch
       response = {saved: true}
     else
