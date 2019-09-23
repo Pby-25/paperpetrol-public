@@ -1,6 +1,9 @@
 class RequestsController < ApplicationController
   def index
-    render json: current_user.requests
+    response = {}
+    current_user.requests.each do |request|
+      response[request.station[:station_id]] = request.station[:place_id]
+    render json: response
   end
 
   def create

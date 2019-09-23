@@ -1,4 +1,4 @@
 class Request < ApplicationRecord
   belongs_to :user
-  has_one :station
+  belongs_to :station
 end
