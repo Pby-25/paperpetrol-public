@@ -54,11 +54,34 @@ function getGoogleMapsApi(){
 
   const script = document.createElement("script");
   const API = 'AIzaSyBrKFxU3QaKNXCwPx9hQ-xWSUMj_4pzfZE';
-  script.src = `https://maps.googleapis.com/maps/api/js?key=${API}&callback=initMap`;
+  script.src = `https://maps.googleapis.com/maps/api/js?key=${API}&libraries=places&callback=initMap`;
   script.async = true;
   document.body.appendChild(script);
   
   return googlePromise
+}
+
+function getNearbyPlaces(map, position, query, google) {
+  let request = {
+  location: position,
+  rankBy: google.maps.places.RankBy.DISTANCE,
+  keyword: query
+  };
+
+  let service = new google.maps.places.PlacesService(map);
+  service.nearbySearch(request, (results, status) => {
+    if (status == google.maps.places.PlacesServiceStatus.OK) {
+      results.forEach(place => {
+        let marker = new google.maps.Marker({
+            position: place.geometry.location,
+            map: map,
+            title: place.name
+        });
+      bounds.extend(place.geometry.location);
+      });
+      map.fitBounds(bounds);
+      }
+  });
 }
 
 function App(){
@@ -76,13 +99,14 @@ function App(){
 }
 
 function QueryMaps(props){
+  // Create request after confirmation.
   const [searchString, setSearchString] = useState("Type your next query");
   const [myLocation, setMyLocation] = useState({
     lat: props.lat, 
     lng: props.lng
   })
   const mapRef = useRef();
-  var map;
+  let map;
 
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(function(position) {
@@ -94,16 +118,20 @@ function QueryMaps(props){
     });
   }
 
+  // When a station is selected on map, send place id to server
+  // Also launch extension.
+  
+
   useEffect( () => {
     props.mapsPromise.then((google) => {
-      if (!map){
-        map = new google.maps.Map(mapRef.current, {
-          center: {lat: myLocation.lat, lng: myLocation.lng},
-          zoom: 8
-        });
-      } else {
-        map.setCenter(myLocation);
-      }
+
+      map = new google.maps.Map(mapRef.current, {
+        center: {lat: myLocation.lat, lng: myLocation.lng},
+        zoom: 8
+      });
+
+      getNearbyPlaces(map, myLocation, searchString, google);
+
     })
   }, [searchString, myLocation])
 
@@ -118,6 +146,7 @@ function QueryMaps(props){
 }
 
 function QueryComponent(props){
+  // Use search nearby and geolocation to find nearby gas stations
   const [searchString, setSearchString] = useState(props.currentQuery);
 
   const handleChange = (e) => {
@@ -125,6 +154,7 @@ function QueryComponent(props){
   }
 
   const handleSubmit = (e) => {
+    // Use Google search nearby api to find nearby gas station
     props.updateQuery(searchString)
   }
 
@@ -138,6 +168,7 @@ function QueryComponent(props){
 
 function StationTiles(props){
   // Ajax call to server?
+  // Get all place_id through requests and display
   var stationResponses = ["ChIJd8BlQ2BZwokRAFUEcm_qrcA", "ChIJXUppRReuEmsRKy0s_W-x8Bc"];
   return(
     <div>
