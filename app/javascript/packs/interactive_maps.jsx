@@ -61,11 +61,12 @@ function getGoogleMapsApi(){
   return googlePromise
 }
 
-function getNearbyPlaces(map, position, query, google) {
+function getNearbyPlaces(map, bounds, position, query, google) {
   let request = {
   location: position,
   rankBy: google.maps.places.RankBy.DISTANCE,
-  keyword: query
+  keyword: query,
+  type: "gas_station"
   };
 
   let service = new google.maps.places.PlacesService(map);
@@ -105,18 +106,41 @@ function QueryMaps(props){
     lat: props.lat, 
     lng: props.lng
   })
+  const [queryMap, setQueryMap] = useState();
   const mapRef = useRef();
   let map;
+  let bounds;
+
+  props.mapsPromise.then((google) => {
+
+    // console.log(queryMap)
+    bounds = new google.maps.LatLngBounds()
+    map = new google.maps.Map(mapRef.current, {
+      center: myLocation,
+      zoom: 10
+    });
+
+
+  })
+
 
   if (navigator.geolocation) {
+    console.log("geolocating")
     navigator.geolocation.getCurrentPosition(function(position) {
       var pos = {
         lat: position.coords.latitude,
         lng: position.coords.longitude
       };
+      console.log(pos);
       setMyLocation(pos);
+    }, () => {
+      console.log("geolocation denied")
     });
+  } else {
+    console.log("fail to geolocate")
   }
+
+
 
   // When a station is selected on map, send place id to server
   // Also launch extension.
@@ -124,13 +148,23 @@ function QueryMaps(props){
 
   useEffect( () => {
     props.mapsPromise.then((google) => {
+      if (!map){
+        // console.log(queryMap)
+        // bounds = new google.maps.LatLngBounds()
+        // setQueryMap(new google.maps.Map(mapRef.current, {
+        //   center: myLocation,
+        //   zoom: 10
+        // }));
+        // bounds.extend(myLocation);
+        // console.log(queryMap)
 
-      map = new google.maps.Map(mapRef.current, {
-        center: {lat: myLocation.lat, lng: myLocation.lng},
-        zoom: 8
-      });
+        // getNearbyPlaces(queryMap, bounds, myLocation, searchString, google);
+      } else {
+        console.log("finally")
+        // console.log(queryMap)
+        getNearbyPlaces(map, bounds, myLocation, searchString, google);
+      }
 
-      getNearbyPlaces(map, myLocation, searchString, google);
 
     })
   }, [searchString, myLocation])
