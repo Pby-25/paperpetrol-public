@@ -61,33 +61,11 @@ function getGoogleMapsApi(){
   return googlePromise
 }
 
-function getNearbyPlaces(map, bounds, position, query, google) {
-  let request = {
-  location: position,
-  rankBy: google.maps.places.RankBy.DISTANCE,
-  keyword: query,
-  type: "gas_station"
-  };
-
-  let service = new google.maps.places.PlacesService(map);
-  service.nearbySearch(request, (results, status) => {
-    if (status == google.maps.places.PlacesServiceStatus.OK) {
-      results.forEach(place => {
-        let marker = new google.maps.Marker({
-            position: place.geometry.location,
-            map: map,
-            title: place.name
-        });
-      bounds.extend(place.geometry.location);
-      });
-      map.fitBounds(bounds);
-      }
-  });
-}
 
 function App(){
   // const [googlePromise, setGooglePromise] = useState(getGoogleMapsApi());
   var googlePromise = getGoogleMapsApi();
+  console.log("apping")
 
   return (
     <div>
@@ -99,27 +77,43 @@ function App(){
   )
 }
 
+
 function QueryMaps(props){
   // Create request after confirmation.
-  const [searchString, setSearchString] = useState("Type your next query");
-  const [myLocation, setMyLocation] = useState({
-    lat: props.lat, 
-    lng: props.lng
-  })
-  const [queryMap, setQueryMap] = useState();
+  console.log("running")
+  const [searchString, setSearchString] = useState("");
+  const [myLocation, setMyLocation] = useState({lat: props.lat, lng: props.lng});
+  
   const mapRef = useRef();
-  let map;
-  let bounds;
+  var map;
+  var bounds;
 
   props.mapsPromise.then((google) => {
-
     // console.log(queryMap)
-    bounds = new google.maps.LatLngBounds()
+    bounds = new google.maps.LatLngBounds();
     map = new google.maps.Map(mapRef.current, {
       center: myLocation,
       zoom: 10
     });
 
+    // Update my location after user dragging the map
+    map.addListener('dragend', () => {
+      let newCenter = map.getCenter();
+      if (newCenter) {
+        let newLat = newCenter.lat();
+        let newLng = newCenter.lng();
+        if (newLat.toFixed(1) != myLocation.lat.toFixed(1) || newLng.toFixed(1) != myLocation.lng.toFixed(1)){
+          console.log("re-render-1")
+          console.log(newLat)
+          console.log(myLocation.lat )
+          console.log(newLng)
+          console.log(myLocation.lng)
+
+          setMyLocation({lat: newLat, lng: newLng});
+        }
+      }
+
+    })
 
   })
 
@@ -132,7 +126,10 @@ function QueryMaps(props){
         lng: position.coords.longitude
       };
       console.log(pos);
-      setMyLocation(pos);
+      if (pos.lat.toFixed(1) != myLocation.lat.toFixed(1) || pos.lng.toFixed(1) != myLocation.lng.toFixed(1)){
+        console.log("re-render-2")
+        setMyLocation(pos);
+      }
     }, () => {
       console.log("geolocation denied")
     });
@@ -148,27 +145,48 @@ function QueryMaps(props){
 
   useEffect( () => {
     props.mapsPromise.then((google) => {
-      if (!map){
-        // console.log(queryMap)
-        // bounds = new google.maps.LatLngBounds()
-        // setQueryMap(new google.maps.Map(mapRef.current, {
-        //   center: myLocation,
-        //   zoom: 10
-        // }));
-        // bounds.extend(myLocation);
-        // console.log(queryMap)
 
-        // getNearbyPlaces(queryMap, bounds, myLocation, searchString, google);
-      } else {
-        console.log("finally")
-        // console.log(queryMap)
-        getNearbyPlaces(map, bounds, myLocation, searchString, google);
-      }
-
+      let request = {
+        location: myLocation,
+        rankBy: google.maps.places.RankBy.DISTANCE,
+        keyword: searchString,
+        type: "gas_station"
+        };
+      
+        let service = new google.maps.places.PlacesService(map);
+        service.nearbySearch(request, (results, status) => {
+          if (status == google.maps.places.PlacesServiceStatus.OK) {
+            console.log(results)
+            results.forEach(place => {
+              let marker = new google.maps.Marker({
+                  position: place.geometry.location,
+                  map: map,
+                  title: place.name
+              });
+              map.addListener(marker, 'click', () => {
+                // show detail in side panel
+              })
+              bounds.extend(place.geometry.location);
+            });
+            map.fitBounds(bounds);
+            }
+        });
 
     })
   }, [searchString, myLocation])
 
+  // add event listener to onidle 
+  // useEffect( () => {
+  //   console.log("mounting")
+  //   mapRef.current.addEventListener("idle", () => {
+  //     console.log("yah");
+  //   })
+
+  //   return () => {
+  //     console.log("unmounting");
+  //     mapRef.current.removeEventListener("idle");
+  //   }
+  // }, [] )
 
   return(
     <div>
@@ -180,6 +198,7 @@ function QueryMaps(props){
 }
 
 function QueryComponent(props){
+  console.log("redenering QueryComponent")
   // Use search nearby and geolocation to find nearby gas stations
   const [searchString, setSearchString] = useState(props.currentQuery);
 
@@ -189,6 +208,7 @@ function QueryComponent(props){
 
   const handleSubmit = (e) => {
     // Use Google search nearby api to find nearby gas station
+    console.log("re-render-3")
     props.updateQuery(searchString)
   }
 
@@ -232,19 +252,27 @@ function geocodePlaceId(geocoder, map, placeId) {
 
 function StationMaps(props){
   const mapRef = useRef();
+  let map;
+  const showMap = (e) => {
+    props.mapsPromise.then((google) => {
+      if (!map){
+        console.log("requesting");
+        var geocoder = new google.maps.Geocoder;
+        map = new google.maps.Map(mapRef.current, {
+          disableDefaultUI: true,
+          center: {lat: 0, lng: 0},
+          zoom: 8,
+        });
+        geocodePlaceId(geocoder, map, props.placeId);
+      }
+    })
+  }
 
-  props.mapsPromise.then((google) => {
-    var geocoder = new google.maps.Geocoder;
-    var map = new google.maps.Map(mapRef.current, {
-      disableDefaultUI: true,
-      center: {lat: 0, lng: 0},
-      zoom: 8
-    });
-    geocodePlaceId(geocoder, map, props.placeId)
-  })
+  
   return (
     <div>
-        <div ref={mapRef} style={{width: 400, height: 300}}></div>
+
+        <div ref={mapRef} style={{width: 400, height: 300}} onMouseEnter={showMap} ></div>
     </div>
   )
 }
