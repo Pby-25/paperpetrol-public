@@ -70,7 +70,7 @@ function App(){
   return (
     <div>
       <TestButton />
-      <QueryMaps mapsPromise={googlePromise} lat={-34} lng={150}/>
+      <QueryMaps mapsPromise={googlePromise} lat={37.7} lng={-122.4}/>
       <StationTiles mapsPromise={googlePromise}/>
     </div>
     
@@ -83,7 +83,7 @@ function QueryMaps(props){
   console.log("running")
   const [searchString, setSearchString] = useState("");
   const [myLocation, setMyLocation] = useState({lat: props.lat, lng: props.lng});
-  
+  const [newPlace, setNewPlace] = useState();
   const mapRef = useRef();
   var map;
   var bounds;
@@ -104,11 +104,6 @@ function QueryMaps(props){
         let newLng = newCenter.lng();
         if (newLat.toFixed(1) != myLocation.lat.toFixed(1) || newLng.toFixed(1) != myLocation.lng.toFixed(1)){
           console.log("re-render-1")
-          console.log(newLat)
-          console.log(myLocation.lat )
-          console.log(newLng)
-          console.log(myLocation.lng)
-
           setMyLocation({lat: newLat, lng: newLng});
         }
       }
@@ -163,8 +158,8 @@ function QueryMaps(props){
                   map: map,
                   title: place.name
               });
-              map.addListener(marker, 'click', () => {
-                // show detail in side panel
+              google.maps.event.addListener(marker, 'click', () => {
+                setNewPlace(place);
               })
               bounds.extend(place.geometry.location);
             });
@@ -192,10 +187,12 @@ function QueryMaps(props){
     <div>
       {searchString}
       <QueryComponent currentQuery={searchString} updateQuery={setSearchString}/>
-      <div ref={mapRef} style={{width: 400, height: 300}}></div>
+      <div ref={mapRef} style={{width: 500, height: 400}}></div>
+      <NewStationForm place={newPlace}/>
     </div>
   )
 }
+
 
 function QueryComponent(props){
   console.log("redenering QueryComponent")
@@ -216,6 +213,20 @@ function QueryComponent(props){
     <div>
       <input type="text" value={searchString} onChange={handleChange}></input>
       <input type="submit" className="btn" value="Search" onClick={handleSubmit}></input>
+    </div>
+  )
+}
+
+function NewStationForm(props){
+  console.log(props.place);
+  var place = props.place || {name: "", vicinity: ""};
+  
+  return(
+    <div>
+      {place.name}
+      {place.vicinity}
+      <input type="text"></input>
+      <input type="submit" className="btn" value="Create"></input>
     </div>
   )
 }

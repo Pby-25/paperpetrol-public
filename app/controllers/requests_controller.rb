@@ -7,7 +7,7 @@ class RequestsController < ApplicationController
   end
 
   def create
-    # create based on user_id (automatic), place_id... for now
+    # create based on user_id (automatic), place_id, nickname... for now
     # if station DNE, create one 
     requested_station = Station.find_or_create_by(place_id: request_params[placeId])
     requested_station.expiry_date = Time.zone.now.advance(days: 15) # duration
