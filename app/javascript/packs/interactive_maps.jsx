@@ -63,19 +63,32 @@ function getGoogleMapsApi(){
 
 
 function App(){
-  // const [googlePromise, setGooglePromise] = useState(getGoogleMapsApi());
   var googlePromise = getGoogleMapsApi();
+  return (
+    <div>
+      <AppWithGoogle googlePromise={googlePromise}/>
+    </div>
+  )
+}
+
+function AppWithGoogle(props){
+  // const [googlePromise, setGooglePromise] = useState(getGoogleMapsApi());
+  const [newPlace, setNewPlace] = useState();
+  
   console.log("apping")
 
   return (
     <div>
       <TestButton />
-      <QueryMaps mapsPromise={googlePromise} lat={37.7} lng={-122.4}/>
-      <StationTiles mapsPromise={googlePromise}/>
+      <QueryMaps mapsPromise={props.googlePromise} setNewPlace={setNewPlace} lat={37.7} lng={-122.4}/>
+      <NewStationForm place={newPlace}/>
+      <StationTiles mapsPromise={props.googlePromise}/>
     </div>
     
   )
 }
+
+
 
 
 function QueryMaps(props){
@@ -83,7 +96,7 @@ function QueryMaps(props){
   console.log("running")
   const [searchString, setSearchString] = useState("");
   const [myLocation, setMyLocation] = useState({lat: props.lat, lng: props.lng});
-  const [newPlace, setNewPlace] = useState();
+  
   const mapRef = useRef();
   var map;
   var bounds;
@@ -159,7 +172,7 @@ function QueryMaps(props){
                   title: place.name
               });
               google.maps.event.addListener(marker, 'click', () => {
-                setNewPlace(place);
+                props.setNewPlace(place);
               })
               bounds.extend(place.geometry.location);
             });
@@ -188,7 +201,6 @@ function QueryMaps(props){
       {searchString}
       <QueryComponent currentQuery={searchString} updateQuery={setSearchString}/>
       <div ref={mapRef} style={{width: 500, height: 400}}></div>
-      <NewStationForm place={newPlace}/>
     </div>
   )
 }
@@ -199,11 +211,11 @@ function QueryComponent(props){
   // Use search nearby and geolocation to find nearby gas stations
   const [searchString, setSearchString] = useState(props.currentQuery);
 
-  const handleChange = (e) => {
+  const handleSearchStringChange = (e) => {
     setSearchString(e.target.value);
   }
 
-  const handleSubmit = (e) => {
+  const handleNewSearch = (e) => {
     // Use Google search nearby api to find nearby gas station
     console.log("re-render-3")
     props.updateQuery(searchString)
@@ -211,8 +223,8 @@ function QueryComponent(props){
 
   return(
     <div>
-      <input type="text" value={searchString} onChange={handleChange}></input>
-      <input type="submit" className="btn" value="Search" onClick={handleSubmit}></input>
+      <input type="text" value={searchString} onChange={handleSearchStringChange}></input>
+      <input type="submit" className="btn" value="Search" onClick={handleNewSearch}></input>
     </div>
   )
 }
@@ -220,13 +232,45 @@ function QueryComponent(props){
 function NewStationForm(props){
   console.log(props.place);
   var place = props.place || {name: "", vicinity: ""};
+  const [nickname, setNickname] = useState("ThatGasStation");
+
   
+  const handleNicknameChange = (e) => {
+    setNickname(e.target.value);
+  }
+
+  const handleCreateRequest = (e) => {
+    // submit request for new request lol!
+    if (place.place_id) {
+      console.log("creating request")
+      console.log(place)
+      let newRquestData = {
+        request: {
+          place_id: place.place_id,
+          duration: 15,
+          nickname: nickname
+        }
+      }
+      $.ajax({
+        type: "POST", 
+        url: "/requests",
+        data: newRquestData,
+        success: (response)=> {console.log(response)},
+        beforeSend: (xhr) => {
+          xhr.setRequestHeader('X-CSRF-Token', $('meta[name="csrf-token"]').attr('content'))
+        },
+      })
+    }
+
+    
+  }
+
   return(
     <div>
       {place.name}
       {place.vicinity}
-      <input type="text"></input>
-      <input type="submit" className="btn" value="Create"></input>
+      <input type="text" value={nickname} onChange={handleNicknameChange}></input>
+      <input type="submit" className="btn" value="Create" onClick={handleCreateRequest}></input>
     </div>
   )
 }

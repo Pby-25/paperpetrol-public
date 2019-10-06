@@ -3,13 +3,14 @@ class RequestsController < ApplicationController
     response = {}
     current_user.requests.each do |request|
       response[request.station[:station_id]] = request.station[:place_id]
+    end
     render json: response
   end
 
   def create
     # create based on user_id (automatic), place_id, nickname... for now
     # if station DNE, create one 
-    requested_station = Station.find_or_create_by(place_id: request_params[placeId])
+    requested_station = Station.find_or_create_by(place_id: request_params[:place_id])
     requested_station.expiry_date = Time.zone.now.advance(days: 15) # duration
     if requested_station.save
       request = current_user.requests.build(request_params)
@@ -40,9 +41,7 @@ class RequestsController < ApplicationController
   end
 
   private
-
     def request_params
       params.require(:request).permit(:place_id, :duration, :nickname)
     end
 end
-

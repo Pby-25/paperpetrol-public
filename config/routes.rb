@@ -21,7 +21,7 @@ Rails.application.routes.draw do
   # resources :microposts,          only: [:create, :destroy]
   # resources :relationships,       only: [:create, :destroy]
   get '/main', to: 'interactive_maps#new'
-  get '/experiment', to: 'interactive_maps#experiment'
+  # get '/experiment', to: 'interactive_maps#experiment'
   resources :requests,  only: [:index, :create, :update, :destroy]
   # resources :stations,  only: [:show]
   get '/stations', to: 'stations#show'
