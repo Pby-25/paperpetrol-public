@@ -5,6 +5,6 @@ User.create!(name:  "admin",
              activated: true,
              activated_at: Time.zone.now)
 
-user = User.first
-req = user.requests.build({place_id: "Arial", duration: 555, nickname: "yo"})
-req.save
+# user = User.first
+# req = user.requests.build({place_id: "Arial", duration: 555, nickname: "yo"})
+# req.save

@@ -2,7 +2,7 @@ class RequestsController < ApplicationController
   def index
     response = {}
     current_user.requests.each do |request|
-      response[request.station[:station_id]] = request.station[:place_id]
+      response[request[:nickname]] = request[:place_id]
     end
     render json: response
   end
@@ -14,7 +14,8 @@ class RequestsController < ApplicationController
     requested_station.expiry_date = Time.zone.now.advance(days: 15) # duration
     if requested_station.save
       request = current_user.requests.build(request_params)
-      request.save
+      puts request.inspect
+      request.save!
       response = {saved: true}
     else
       response = {saved: false}

@@ -19,7 +19,9 @@ function TestButton(){
       // contentType: "application/json; charset=utf-8",
       url: "/requests",
       data: mydata,
-      success: (response)=> {console.log(response)},
+      success: (response)=> {
+        console.log(response)
+      },
       beforeSend: (xhr) => {
         xhr.setRequestHeader('X-CSRF-Token', $('meta[name="csrf-token"]').attr('content'))
       },
@@ -72,16 +74,33 @@ function App(){
 }
 
 function AppWithGoogle(props){
-  // const [googlePromise, setGooglePromise] = useState(getGoogleMapsApi());
-  const [newPlace, setNewPlace] = useState();
+  // const [googlePromise, setGooglePromise] = useState(getGoogleMapsApi());  
+  console.log("apping");
+  const mapRef = useRef();
+
+  var queryMapPromise = new Promise( (resolve) => {
+    var map;
+    props.googlePromise.then((google) => {
+      // console.log(queryMap)
+      // bounds = new google.maps.LatLngBounds();
+      map = new google.maps.Map(mapRef.current, {
+        center: {lat:37.7, lng:-122.4},
+        zoom: 10
+      });
   
-  console.log("apping")
+      resolve(map);
+    })
+  })
+
+  
+
+
 
   return (
     <div>
       <TestButton />
-      <QueryMaps mapsPromise={props.googlePromise} setNewPlace={setNewPlace} lat={37.7} lng={-122.4}/>
-      <NewStationForm place={newPlace}/>
+      <div ref={mapRef} style={{width: 500, height: 400}}></div>
+      <QueryMaps mapsPromise={props.googlePromise} queryMapPromise={queryMapPromise} lat={37.7} lng={-122.4}/>
       <StationTiles mapsPromise={props.googlePromise}/>
     </div>
     
@@ -96,90 +115,90 @@ function QueryMaps(props){
   console.log("running")
   const [searchString, setSearchString] = useState("");
   const [myLocation, setMyLocation] = useState({lat: props.lat, lng: props.lng});
+  const [station, setStation] = useState();
   
-  const mapRef = useRef();
-  var map;
   var bounds;
 
-  props.mapsPromise.then((google) => {
-    // console.log(queryMap)
-    bounds = new google.maps.LatLngBounds();
-    map = new google.maps.Map(mapRef.current, {
-      center: myLocation,
-      zoom: 10
-    });
 
+  useEffect( ()=>{
     // Update my location after user dragging the map
-    map.addListener('dragend', () => {
-      let newCenter = map.getCenter();
-      if (newCenter) {
-        let newLat = newCenter.lat();
-        let newLng = newCenter.lng();
-        if (newLat.toFixed(1) != myLocation.lat.toFixed(1) || newLng.toFixed(1) != myLocation.lng.toFixed(1)){
-          console.log("re-render-1")
-          setMyLocation({lat: newLat, lng: newLng});
+    props.queryMapPromise.then( (map)=>{
+
+      if (navigator.geolocation) {
+        console.log("geolocating")
+        navigator.geolocation.getCurrentPosition(function(position) {
+          var pos = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+          console.log(pos);
+          if (pos.lat.toFixed(1) != myLocation.lat.toFixed(1) || pos.lng.toFixed(1) != myLocation.lng.toFixed(1)){
+            console.log("re-render-2")
+            setMyLocation(pos);
+          }
+        }, () => {
+          console.log("geolocation denied")
+        });
+      } else {
+        console.log("fail to geolocate")
+      }
+
+      map.addListener('dragend', () => {
+        let newCenter = map.getCenter();
+        if (newCenter) {
+          let newLat = newCenter.lat();
+          let newLng = newCenter.lng();
+          if (newLat.toFixed(1) != myLocation.lat.toFixed(1) || newLng.toFixed(1) != myLocation.lng.toFixed(1)){
+            console.log("re-render-1")
+            setMyLocation({lat: newLat, lng: newLng});
+          }
         }
-      }
+      })
 
-    })
-
-  })
-
-
-  if (navigator.geolocation) {
-    console.log("geolocating")
-    navigator.geolocation.getCurrentPosition(function(position) {
-      var pos = {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude
-      };
-      console.log(pos);
-      if (pos.lat.toFixed(1) != myLocation.lat.toFixed(1) || pos.lng.toFixed(1) != myLocation.lng.toFixed(1)){
-        console.log("re-render-2")
-        setMyLocation(pos);
-      }
-    }, () => {
-      console.log("geolocation denied")
     });
-  } else {
-    console.log("fail to geolocate")
-  }
+  }, [])
 
+  
 
 
   // When a station is selected on map, send place id to server
   // Also launch extension.
   
 
-  useEffect( () => {
-    props.mapsPromise.then((google) => {
+  useEffect( ()=>{
+    props.queryMapPromise.then((map) => {
+      console.log("to do nearby search")
+      props.mapsPromise.then((google) => {
+        bounds = new google.maps.LatLngBounds();
 
-      let request = {
-        location: myLocation,
-        rankBy: google.maps.places.RankBy.DISTANCE,
-        keyword: searchString,
-        type: "gas_station"
-        };
-      
-        let service = new google.maps.places.PlacesService(map);
-        service.nearbySearch(request, (results, status) => {
-          if (status == google.maps.places.PlacesServiceStatus.OK) {
-            console.log(results)
-            results.forEach(place => {
-              let marker = new google.maps.Marker({
-                  position: place.geometry.location,
-                  map: map,
-                  title: place.name
+        let request = {
+          location: myLocation,
+          rankBy: google.maps.places.RankBy.DISTANCE,
+          keyword: searchString,
+          type: "gas_station"
+          };
+        
+          let service = new google.maps.places.PlacesService(map);
+          service.nearbySearch(request, (results, status) => {
+            if (status == google.maps.places.PlacesServiceStatus.OK) {
+              console.log(results)
+              results.forEach(place => {
+                let marker = new google.maps.Marker({
+                    position: place.geometry.location,
+                    map: map,
+                    title: place.name
+                });
+                google.maps.event.addListener(marker, 'click', () => {
+                  console.log("click!")
+                  setStation(place);
+                })
+                bounds.extend(place.geometry.location);
               });
-              google.maps.event.addListener(marker, 'click', () => {
-                props.setNewPlace(place);
-              })
-              bounds.extend(place.geometry.location);
-            });
-            map.fitBounds(bounds);
-            }
-        });
+              map.fitBounds(bounds);
+              }
+          });
 
+      })
     })
   }, [searchString, myLocation])
 
@@ -196,11 +215,15 @@ function QueryMaps(props){
   //   }
   // }, [] )
 
+
+
+
+
   return(
     <div>
       {searchString}
       <QueryComponent currentQuery={searchString} updateQuery={setSearchString}/>
-      <div ref={mapRef} style={{width: 500, height: 400}}></div>
+      <NewStationForm place={station}/>
     </div>
   )
 }
@@ -230,10 +253,9 @@ function QueryComponent(props){
 }
 
 function NewStationForm(props){
-  console.log(props.place);
   var place = props.place || {name: "", vicinity: ""};
   const [nickname, setNickname] = useState("ThatGasStation");
-
+  console.log("re-render-4");
   
   const handleNicknameChange = (e) => {
     setNickname(e.target.value);
@@ -278,14 +300,40 @@ function NewStationForm(props){
 function StationTiles(props){
   // Ajax call to server?
   // Get all place_id through requests and display
+  const [trackingStations, setTrackingStations] = useState({});
+
+  useEffect( ()=>{
+    $.ajax({
+      type: "GET", 
+      url: "/requests",
+      success: (response)=> {
+        console.log("receiving request response");
+        setTrackingStations(response);
+        // $.each(response, (key, value)=>{
+        //   console.log(key);
+        //   console.log(value);
+        // })
+        
+      },
+      beforeSend: (xhr) => {
+        xhr.setRequestHeader('X-CSRF-Token', $('meta[name="csrf-token"]').attr('content'))
+      },
+    })
+  
+  }, [])
+
+
+
   var stationResponses = ["ChIJd8BlQ2BZwokRAFUEcm_qrcA", "ChIJXUppRReuEmsRKy0s_W-x8Bc"];
   return(
     <div>
-      {stationResponses.map((stationResponse) =>
-        <StationMaps key={stationResponse}
-        mapsPromise = {props.mapsPromise}
-        placeId = {stationResponse}/>
-      )}
+      {Object.entries(trackingStations).map(([nickname, place_id]) =>
+          <StationMaps key={place_id}
+          mapsPromise = {props.mapsPromise}
+          nickname = {nickname}
+          placeId = {place_id}/>
+        )
+      }
     </div>
   )
 }
@@ -326,8 +374,7 @@ function StationMaps(props){
   
   return (
     <div>
-
-        <div ref={mapRef} style={{width: 400, height: 300}} onMouseEnter={showMap} ></div>
+        <div ref={mapRef} style={{width: 400, height: 300}} onMouseEnter={showMap} >{props.nickname}</div>
     </div>
   )
 }
