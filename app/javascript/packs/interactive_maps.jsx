@@ -324,7 +324,7 @@ function StationTiles(props){
 
 
 
-  var stationResponses = ["ChIJd8BlQ2BZwokRAFUEcm_qrcA", "ChIJXUppRReuEmsRKy0s_W-x8Bc"];
+  // var stationResponses = ["ChIJd8BlQ2BZwokRAFUEcm_qrcA", "ChIJXUppRReuEmsRKy0s_W-x8Bc"];
   return(
     <div>
       {Object.entries(trackingStations).map(([nickname, place_id]) =>
