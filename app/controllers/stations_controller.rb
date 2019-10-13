@@ -20,6 +20,7 @@ class StationsController < ApplicationController
     stations_to_be_refreshed = Station.order(updated_at: :asc)
                                       .where("expiry_date > ? ", Time.zone.now)
                                       .limit(fetch_limit)
+                                      .select(:place_id, :link)
     render json: stations_to_be_refreshed
   end
 

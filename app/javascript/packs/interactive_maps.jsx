@@ -13,32 +13,39 @@ function TestButton(){
      }
     }}
 
-  const handleSubmit = () => {
-    $.ajax({
-      type: "POST", 
-      // contentType: "application/json; charset=utf-8",
-      url: "/requests",
-      data: mydata,
-      success: (response)=> {
-        console.log(response)
-      },
-      beforeSend: (xhr) => {
-        xhr.setRequestHeader('X-CSRF-Token', $('meta[name="csrf-token"]').attr('content'))
-      },
-    })
-  }
-
   // const handleSubmit = () => {
-  //     $.ajax({
-  //       type: "GET", 
-  //       url: "/requests",
-  //       data: mydata,
-  //       success: (response)=> {console.log(response)},
-  //       beforeSend: (xhr) => {
-  //         xhr.setRequestHeader('X-CSRF-Token', $('meta[name="csrf-token"]').attr('content'))
-  //       },
-  //     })
-  //   }
+  //   $.ajax({
+  //     type: "POST", 
+  //     // contentType: "application/json; charset=utf-8",
+  //     url: "/requests",
+  //     data: mydata,
+  //     success: (response)=> {
+  //       console.log(response)
+  //     },
+  //     beforeSend: (xhr) => {
+  //       xhr.setRequestHeader('X-CSRF-Token', $('meta[name="csrf-token"]').attr('content'))
+  //     },
+  //   })
+  // }
+
+  const handleSubmit = () => {
+      $.ajax({
+        type: "GET", 
+        url: "/fetch_stations",
+        data: mydata,
+        success: (response)=> {
+          let stations = response;
+          for (let station of stations){
+            station.newLink = station.link ? false : true;
+          }
+          
+          console.log(stations)
+        },
+        beforeSend: (xhr) => {
+          xhr.setRequestHeader('X-CSRF-Token', $('meta[name="csrf-token"]').attr('content'))
+        },
+      })
+    }
 
   return (
     <input type="submit" className="btn" value="TEST!!!!" onClick={handleSubmit}></input>
