@@ -44,7 +44,19 @@ function TestButton(){
         beforeSend: (xhr) => {
           xhr.setRequestHeader('X-CSRF-Token', $('meta[name="csrf-token"]').attr('content'))
         },
-      })
+      });
+
+      const extensionId = "fmmahhbmaeoldmpihmachpejdfohejoh";
+      chrome.runtime.sendMessage(extensionId, {}, (response) => {
+          if (chrome.runtime.lastError){
+            console.log("gotta install extension!");
+          } else if (!response.success) {
+            console.log("oh no")
+          } else {
+            
+          }
+            
+        });
     }
 
   return (
