@@ -35,9 +35,9 @@ function TestButton(){
         data: mydata,
         success: (response)=> {
           let stations = response;
-          for (let station of stations){
-            station.newLink = station.link ? false : true;
-          }
+          // for (let station of stations){
+          //   station.newLink = station.link ? false : true;
+          // }
           
           console.log(stations)
         },
@@ -49,11 +49,12 @@ function TestButton(){
       const extensionId = "fmmahhbmaeoldmpihmachpejdfohejoh";
       chrome.runtime.sendMessage(extensionId, {}, (response) => {
           if (chrome.runtime.lastError){
+            console.log(chrome.runtime.lastError)
             console.log("gotta install extension!");
           } else if (!response.success) {
             console.log("oh no")
           } else {
-            
+
           }
             
         });
@@ -271,6 +272,62 @@ function QueryComponent(props){
   )
 }
 
+function fetchStationBatch(){
+  return new Promise((resolve)=>{
+    $.ajax({
+      type: "GET", 
+      url: "/fetch_stations",
+      success: (response)=> {     
+        resolve(response);
+      },
+      beforeSend: (xhr) => {
+        xhr.setRequestHeader('X-CSRF-Token', $('meta[name="csrf-token"]').attr('content'))
+      },
+    });
+  })
+}
+
+function sendToExtension(message){
+  return new Promise((resolve)=>{
+    const extensionId = "fmmahhbmaeoldmpihmachpejdfohejoh";
+    chrome.runtime.sendMessage(extensionId, message, (response) => {
+        if (chrome.runtime.lastError){
+          console.log(chrome.runtime.lastError)
+          console.log("gotta install extension!");
+        } else {
+          resolve(response);
+        }  
+      });
+  })
+}
+
+function updateGasPrice(){
+  
+}
+
+function createStationRequest(place_id, nickname){
+  return new Promise((resolve)=>{
+    let newRquestData = {
+      request: {
+        place_id: place_id,
+        duration: 15,
+        nickname: nickname
+      }
+    }
+    $.ajax({
+      type: "POST", 
+      url: "/requests",
+      data: newRquestData,
+      success: (response)=> {resolve(response)},
+      beforeSend: (xhr) => {
+        xhr.setRequestHeader('X-CSRF-Token', $('meta[name="csrf-token"]').attr('content'))
+      },
+    })
+  })
+}
+
+
+
 function NewStationForm(props){
   var place = props.place || {name: "", vicinity: ""};
   const [nickname, setNickname] = useState("ThatGasStation");
@@ -281,26 +338,22 @@ function NewStationForm(props){
   }
 
   const handleCreateRequest = (e) => {
-    // submit request for new request lol!
-    if (place.place_id) {
-      console.log("creating request")
-      console.log(place)
-      let newRquestData = {
-        request: {
-          place_id: place.place_id,
-          duration: 15,
-          nickname: nickname
-        }
-      }
-      $.ajax({
-        type: "POST", 
-        url: "/requests",
-        data: newRquestData,
-        success: (response)=> {console.log(response)},
-        beforeSend: (xhr) => {
-          xhr.setRequestHeader('X-CSRF-Token', $('meta[name="csrf-token"]').attr('content'))
-        },
-      })
+    let place_id = place.place_id;
+    if (place_id) {
+      let fetchStationPromise = fetchStationBatch();
+      fetchStationPromise.then((stations)=>{
+        stations.push({place_id: place_id, link: null});
+        let extensionResponse = sendToExtension(stations);
+        extensionResponse.then((response)=>{
+          console.log(response);
+        })
+      });
+      // let createRequestPromise = createStationRequest(place_id, nickname);
+      // createRequestPromise.then((response)=>{
+      //   console.log(response);
+      // })
+    } else {
+      console.log("no place id selected")
     }
 
     

@@ -13,12 +13,19 @@ class RequestsController < ApplicationController
     requested_station = Station.find_or_create_by(place_id: request_params[:place_id])
     requested_station.expiry_date = Time.zone.now.advance(days: 15) # duration
     if requested_station.save
-      request = current_user.requests.build(request_params)
-      puts request.inspect
-      request.save!
-      response = {saved: true}
+      request = current_user.requests.find_by(place_id: request_params[:place_id])
+      if !request
+        request = current_user.requests.build(request_params)
+      else
+        request.nickname = request_params[:nickname]
+      end
+      if request.save
+        response = {success: true}
+      else
+        response = {success: false}
+      end
     else
-      response = {saved: false}
+      response = {success: false}
     end
     render json: response
   end
@@ -30,9 +37,9 @@ class RequestsController < ApplicationController
     if requested_station.save
       request = current_user.requests.find_by(place_id: request_params[:place_id])
       request.touch
-      response = {saved: true}
+      response = {success: true}
     else
-      response = {saved: false}
+      response = {success: false}
     end
     render json: response
     # flawed, keep like this for now
