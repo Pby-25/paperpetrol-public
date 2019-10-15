@@ -31,33 +31,30 @@ function TestButton(){
   const handleSubmit = () => {
       $.ajax({
         type: "GET", 
-        url: "/fetch_stations",
+        url: "/stations",
         data: mydata,
         success: (response)=> {
-          let stations = response;
-          // for (let station of stations){
-          //   station.newLink = station.link ? false : true;
-          // }
+
           
-          console.log(stations)
+          console.log(response)
         },
         beforeSend: (xhr) => {
           xhr.setRequestHeader('X-CSRF-Token', $('meta[name="csrf-token"]').attr('content'))
         },
       });
 
-      const extensionId = "fmmahhbmaeoldmpihmachpejdfohejoh";
-      chrome.runtime.sendMessage(extensionId, {}, (response) => {
-          if (chrome.runtime.lastError){
-            console.log(chrome.runtime.lastError)
-            console.log("gotta install extension!");
-          } else if (!response.success) {
-            console.log("oh no")
-          } else {
+    //   const extensionId = "fmmahhbmaeoldmpihmachpejdfohejoh";
+    //   chrome.runtime.sendMessage(extensionId, {}, (response) => {
+    //       if (chrome.runtime.lastError){
+    //         console.log(chrome.runtime.lastError)
+    //         console.log("gotta install extension!");
+    //       } else if (!response.success) {
+    //         console.log("oh no")
+    //       } else {
 
-          }
+    //       }
             
-        });
+    //     });
     }
 
   return (
@@ -301,8 +298,19 @@ function sendToExtension(message){
   })
 }
 
-function updateGasPrice(){
-  
+function updateGasPrice(dataArray){
+  console.log("updating gas price")
+  for (const data of dataArray){
+    $.ajax({
+      type: "POST", 
+      url: "/add_record",
+      data: {station: data},
+      success: (response)=> {console.log(response)},
+      beforeSend: (xhr) => {
+        xhr.setRequestHeader('X-CSRF-Token', $('meta[name="csrf-token"]').attr('content'))
+      },
+    })
+  } 
 }
 
 function createStationRequest(place_id, nickname){
@@ -344,14 +352,18 @@ function NewStationForm(props){
       fetchStationPromise.then((stations)=>{
         stations.push({place_id: place_id, link: null});
         let extensionResponse = sendToExtension(stations);
-        extensionResponse.then((response)=>{
-          console.log(response);
+        extensionResponse.then((extensionResponse)=>{
+          console.log(extensionResponse)
+          if (extensionResponse.length > 0){
+            let createRequestPromise = createStationRequest(place_id, nickname);
+            createRequestPromise.then(()=>{
+              updateGasPrice(extensionResponse);
+            })
+          } else {
+            console.log("failed fetch necessary data")
+          }
         })
       });
-      // let createRequestPromise = createStationRequest(place_id, nickname);
-      // createRequestPromise.then((response)=>{
-      //   console.log(response);
-      // })
     } else {
       console.log("no place id selected")
     }
@@ -395,8 +407,6 @@ function StationTiles(props){
   }, [])
 
 
-
-  // var stationResponses = ["ChIJd8BlQ2BZwokRAFUEcm_qrcA", "ChIJXUppRReuEmsRKy0s_W-x8Bc"];
   return(
     <div>
       {Object.entries(trackingStations).map(([nickname, place_id]) =>

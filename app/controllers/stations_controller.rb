@@ -26,18 +26,22 @@ class StationsController < ApplicationController
 
   # one function to update a station, if new record are retrieved
   def add_record
+    p station_params
+    p "pay attention!"
     station = Station.find_by(place_id: station_params[:place_id])
-    record = station.records.build
+    record = station.records.create
     station_params[:records].each do |key, value|
-      record.create({grade: key, price: value})
+      record.entries.create({grade: key, price: value})
     end
-    record.save
+    if station_params[:newLink]
+      station.link = station_params[:link]
+    end
     station.save
   end
 
   private
   
     def station_params
-      params.require(:station).permit(:place_id, :records)
+      params.require(:station).permit(:place_id, {records: [:Diesel, :Regular, :Midgrade, :Premium]}, :link, :newLink)
     end
 end

@@ -11,19 +11,11 @@ Rails.application.routes.draw do
   get    '/login',   to: 'sessions#new'
   post   '/login',   to: 'sessions#create'
   delete '/logout',  to: 'sessions#destroy'
-  resources :users #do
-  #   member do
-  #     get :following, :followers
-  #   end
-  # end
+  resources :users 
   resources :account_activations, only: [:edit]
   resources :password_resets,     only: [:new, :create, :edit, :update]
-  # resources :microposts,          only: [:create, :destroy]
-  # resources :relationships,       only: [:create, :destroy]
   get '/main', to: 'interactive_maps#new'
-  # get '/experiment', to: 'interactive_maps#experiment'
   resources :requests,  only: [:index, :create, :update, :destroy]
-  # resources :stations,  only: [:show]
   get '/stations', to: 'stations#show'
   get '/fetch_stations', to: 'stations#fetch'
   post '/add_record', to: 'stations#add_record'
