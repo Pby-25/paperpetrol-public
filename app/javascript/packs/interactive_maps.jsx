@@ -3,15 +3,11 @@ import ReactDOM from 'react-dom'
 
 function TestButton(){
   const mydata = {
-    // "as":"Dsa"
-    thing: {
-     placeId: "qew",
-     field2: 123,
-     gogogo: {
-       a:"sad",
-       e3: 22
-     }
-    }}
+    station: {
+     place_id: "ChIJAxJIvqJBK4gR-5mEIpq4mfw",
+    }
+
+    }
 
   // const handleSubmit = () => {
   //   $.ajax({
@@ -289,8 +285,9 @@ function sendToExtension(message){
     const extensionId = "fmmahhbmaeoldmpihmachpejdfohejoh";
     chrome.runtime.sendMessage(extensionId, message, (response) => {
         if (chrome.runtime.lastError){
-          console.log(chrome.runtime.lastError)
           console.log("gotta install extension!");
+          const extensionLink = "https://chrome.google.com/webstore/detail/paperpetrol/mbdpjbcmfccpbdmpaohnecngkbmjmbei"
+          window.open(extensionLink, '_blank');
         } else {
           resolve(response);
         }  
@@ -392,12 +389,7 @@ function StationTiles(props){
       url: "/requests",
       success: (response)=> {
         console.log("receiving request response");
-        setTrackingStations(response);
-        // $.each(response, (key, value)=>{
-        //   console.log(key);
-        //   console.log(value);
-        // })
-        
+        setTrackingStations(response);        
       },
       beforeSend: (xhr) => {
         xhr.setRequestHeader('X-CSRF-Token', $('meta[name="csrf-token"]').attr('content'))
@@ -420,12 +412,17 @@ function StationTiles(props){
   )
 }
 
-function geocodePlaceId(geocoder, map, placeId) {
+function geocodePlaceId(geocoder, map, placeId, nickname) {
   geocoder.geocode({'placeId': placeId}, function(results, status) {
     if (status === 'OK') {
       if (results[0]) {
         map.setZoom(11);
         map.setCenter(results[0].geometry.location);
+        new google.maps.Marker({
+          position: results[0].geometry.location,
+          map: map,
+          title: nickname
+        });
       } else {
         window.alert('No results found');
       }
@@ -446,17 +443,48 @@ function StationMaps(props){
         map = new google.maps.Map(mapRef.current, {
           disableDefaultUI: true,
           center: {lat: 0, lng: 0},
-          zoom: 8,
+          zoom: 5,
         });
-        geocodePlaceId(geocoder, map, props.placeId);
+        geocodePlaceId(geocoder, map, props.placeId, props.nickname);
       }
     })
   }
 
+  const toggleGraph = (e)=>{
+    // let mapContainer = $(e.target).find(".map-tiles-container")[0];
+    // let graphBox = $(".paper", mapContainer);
+    let mapContainer = e.currentTarget;
+    let graphBox = $(mapContainer).find(".paper");
+    console.log(mapContainer)
+    console.log(graphBox)
+    console.log($(mapContainer).find(".map-node"))
+    if (graphBox && !graphBox.textContent) {
+      const data = {station: {place_id: props.placeId}};
+      console.log(data)
+      $.ajax({
+        type: "GET", 
+        url: "/stations",
+        data: data,
+        success: (response)=> {
+          console.log(response);
+          graphBox.text(JSON.stringify(response));
+          console.log($(".map-node", mapContainer))
+          $(".map-node", mapContainer).toggle();
+        },
+        beforeSend: (xhr) => {
+          xhr.setRequestHeader('X-CSRF-Token', $('meta[name="csrf-token"]').attr('content'))
+        },
+      });
+    }
+  }
+
   
   return (
-    <div>
-        <div ref={mapRef} style={{width: 400, height: 300}} onMouseEnter={showMap} >{props.nickname}</div>
+    <div onClick={toggleGraph}>
+      <div  className="map-tiles-container">
+        <div className="paper map-node" ></div>
+        <div className="map-node" ref={mapRef} style={{width: 400, height: 300}} onMouseEnter={showMap} >{props.nickname}</div>
+      </div>
     </div>
   )
 }

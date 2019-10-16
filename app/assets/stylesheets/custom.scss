@@ -241,6 +241,15 @@ input {
     border-bottom: 1px solid $gray-lighter;
   }
 }
+.map-tiles-container {
+  width: 400px;
+  height: 300px;
+}
+.paper {
+  display: none;
+  width: 100%;
+  height: 100%;
+}
 
 /* microposts */
 

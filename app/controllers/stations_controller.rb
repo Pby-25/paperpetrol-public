@@ -9,7 +9,8 @@ class StationsController < ApplicationController
       record.entries.each do |entry|
         pretty_record[entry[:grade]] = entry[:price]
       end
-      response[record[:created_at]] = pretty_record
+      collection_time = record[:created_at].strftime("Collected at %I:%M%p, %F %Z")
+      response[collection_time] = pretty_record
     end
     render json: response
   end
