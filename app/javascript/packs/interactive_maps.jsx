@@ -1,63 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import ReactDOM from 'react-dom'
 
-function TestButton(){
-  const mydata = {
-    station: {
-     place_id: "ChIJAxJIvqJBK4gR-5mEIpq4mfw",
-    }
-
-    }
-
-  // const handleSubmit = () => {
-  //   $.ajax({
-  //     type: "POST", 
-  //     // contentType: "application/json; charset=utf-8",
-  //     url: "/requests",
-  //     data: mydata,
-  //     success: (response)=> {
-  //       console.log(response)
-  //     },
-  //     beforeSend: (xhr) => {
-  //       xhr.setRequestHeader('X-CSRF-Token', $('meta[name="csrf-token"]').attr('content'))
-  //     },
-  //   })
-  // }
-
-  const handleSubmit = () => {
-      $.ajax({
-        type: "GET", 
-        url: "/stations",
-        data: mydata,
-        success: (response)=> {
-
-          
-          console.log(response)
-        },
-        beforeSend: (xhr) => {
-          xhr.setRequestHeader('X-CSRF-Token', $('meta[name="csrf-token"]').attr('content'))
-        },
-      });
-
-    //   const extensionId = "fmmahhbmaeoldmpihmachpejdfohejoh";
-    //   chrome.runtime.sendMessage(extensionId, {}, (response) => {
-    //       if (chrome.runtime.lastError){
-    //         console.log(chrome.runtime.lastError)
-    //         console.log("gotta install extension!");
-    //       } else if (!response.success) {
-    //         console.log("oh no")
-    //       } else {
-
-    //       }
-            
-    //     });
-    }
-
-  return (
-    <input type="submit" className="btn" value="TEST!!!!" onClick={handleSubmit}></input>
-  )
-}
-
 function getGoogleMapsApi(){
   // Load the Google Maps API
   var googlePromise = new Promise((resolve) => {
@@ -72,7 +15,6 @@ function getGoogleMapsApi(){
   script.src = `https://maps.googleapis.com/maps/api/js?key=${API}&libraries=places&callback=initMap`;
   script.async = true;
   document.body.appendChild(script);
-  
   return googlePromise
 }
 
@@ -87,15 +29,11 @@ function App(){
 }
 
 function AppWithGoogle(props){
-  // const [googlePromise, setGooglePromise] = useState(getGoogleMapsApi());  
-  console.log("apping");
   const mapRef = useRef();
 
   var queryMapPromise = new Promise( (resolve) => {
     var map;
     props.googlePromise.then((google) => {
-      // console.log(queryMap)
-      // bounds = new google.maps.LatLngBounds();
       map = new google.maps.Map(mapRef.current, {
         center: {lat:37.7, lng:-122.4},
         zoom: 10
@@ -105,15 +43,15 @@ function AppWithGoogle(props){
     })
   })
 
-  
-
-
 
   return (
     <div>
-      <TestButton />
-      <div ref={mapRef} style={{width: 500, height: 400}}></div>
+      <div ref={mapRef} style={{width: 600, height: 400}}></div>
+      <br />
       <QueryMaps mapsPromise={props.googlePromise} queryMapPromise={queryMapPromise} lat={37.7} lng={-122.4}/>
+      <br />
+      <br />
+      <br />
       <StationTiles mapsPromise={props.googlePromise}/>
     </div>
     
@@ -122,10 +60,8 @@ function AppWithGoogle(props){
 
 
 
-
 function QueryMaps(props){
   // Create request after confirmation.
-  console.log("running")
   const [searchString, setSearchString] = useState("");
   const [myLocation, setMyLocation] = useState({lat: props.lat, lng: props.lng});
   const [station, setStation] = useState();
@@ -138,7 +74,6 @@ function QueryMaps(props){
     props.queryMapPromise.then( (map)=>{
 
       if (navigator.geolocation) {
-        console.log("geolocating")
         navigator.geolocation.getCurrentPosition(function(position) {
           var pos = {
             lat: position.coords.latitude,
@@ -146,14 +81,11 @@ function QueryMaps(props){
           };
           console.log(pos);
           if (pos.lat.toFixed(1) != myLocation.lat.toFixed(1) || pos.lng.toFixed(1) != myLocation.lng.toFixed(1)){
-            console.log("re-render-2")
             setMyLocation(pos);
           }
         }, () => {
-          console.log("geolocation denied")
         });
       } else {
-        console.log("fail to geolocate")
       }
 
       map.addListener('dragend', () => {
@@ -162,7 +94,6 @@ function QueryMaps(props){
           let newLat = newCenter.lat();
           let newLng = newCenter.lng();
           if (newLat.toFixed(1) != myLocation.lat.toFixed(1) || newLng.toFixed(1) != myLocation.lng.toFixed(1)){
-            console.log("re-render-1")
             setMyLocation({lat: newLat, lng: newLng});
           }
         }
@@ -172,15 +103,12 @@ function QueryMaps(props){
   }, [])
 
   
-
-
   // When a station is selected on map, send place id to server
   // Also launch extension.
   
 
   useEffect( ()=>{
     props.queryMapPromise.then((map) => {
-      console.log("to do nearby search")
       props.mapsPromise.then((google) => {
         bounds = new google.maps.LatLngBounds();
 
@@ -194,7 +122,6 @@ function QueryMaps(props){
           let service = new google.maps.places.PlacesService(map);
           service.nearbySearch(request, (results, status) => {
             if (status == google.maps.places.PlacesServiceStatus.OK) {
-              console.log(results)
               results.forEach(place => {
                 let marker = new google.maps.Marker({
                     position: place.geometry.location,
@@ -202,7 +129,6 @@ function QueryMaps(props){
                     title: place.name
                 });
                 google.maps.event.addListener(marker, 'click', () => {
-                  console.log("click!")
                   setStation(place);
                 })
                 bounds.extend(place.geometry.location);
@@ -215,27 +141,10 @@ function QueryMaps(props){
     })
   }, [searchString, myLocation])
 
-  // add event listener to onidle 
-  // useEffect( () => {
-  //   console.log("mounting")
-  //   mapRef.current.addEventListener("idle", () => {
-  //     console.log("yah");
-  //   })
-
-  //   return () => {
-  //     console.log("unmounting");
-  //     mapRef.current.removeEventListener("idle");
-  //   }
-  // }, [] )
-
-
-
-
-
   return(
     <div>
-      {searchString}
       <QueryComponent currentQuery={searchString} updateQuery={setSearchString}/>
+      <br />
       <NewStationForm place={station}/>
     </div>
   )
@@ -243,7 +152,6 @@ function QueryMaps(props){
 
 
 function QueryComponent(props){
-  console.log("redenering QueryComponent")
   // Use search nearby and geolocation to find nearby gas stations
   const [searchString, setSearchString] = useState(props.currentQuery);
 
@@ -253,7 +161,6 @@ function QueryComponent(props){
 
   const handleNewSearch = (e) => {
     // Use Google search nearby api to find nearby gas station
-    console.log("re-render-3")
     props.updateQuery(searchString)
   }
 
@@ -285,7 +192,6 @@ function sendToExtension(message){
     const extensionId = "fmmahhbmaeoldmpihmachpejdfohejoh";
     chrome.runtime.sendMessage(extensionId, message, (response) => {
         if (chrome.runtime.lastError){
-          console.log("gotta install extension!");
           const extensionLink = "https://chrome.google.com/webstore/detail/paperpetrol/mbdpjbcmfccpbdmpaohnecngkbmjmbei"
           window.open(extensionLink, '_blank');
         } else {
@@ -296,7 +202,6 @@ function sendToExtension(message){
 }
 
 function updateGasPrice(dataArray){
-  console.log("updating gas price")
   for (const data of dataArray){
     $.ajax({
       type: "POST", 
@@ -335,8 +240,7 @@ function createStationRequest(place_id, nickname){
 
 function NewStationForm(props){
   var place = props.place || {name: "", vicinity: ""};
-  const [nickname, setNickname] = useState("ThatGasStation");
-  console.log("re-render-4");
+  const [nickname, setNickname] = useState("Nickname for my gas station");
   
   const handleNicknameChange = (e) => {
     setNickname(e.target.value);
@@ -373,6 +277,7 @@ function NewStationForm(props){
       {place.name}
       {place.vicinity}
       <input type="text" value={nickname} onChange={handleNicknameChange}></input>
+      The extension must be installed to create a request. You will be redirected to the extension page if it cannot be detected.
       <input type="submit" className="btn" value="Create" onClick={handleCreateRequest}></input>
     </div>
   )
@@ -388,7 +293,6 @@ function StationTiles(props){
       type: "GET", 
       url: "/requests",
       success: (response)=> {
-        console.log("receiving request response");
         setTrackingStations(response);        
       },
       beforeSend: (xhr) => {
@@ -438,7 +342,6 @@ function StationMaps(props){
   const showMap = (e) => {
     props.mapsPromise.then((google) => {
       if (!map){
-        console.log("requesting");
         var geocoder = new google.maps.Geocoder;
         map = new google.maps.Map(mapRef.current, {
           disableDefaultUI: true,
@@ -482,8 +385,9 @@ function StationMaps(props){
   return (
     <div onClick={toggleGraph}>
       <div  className="map-tiles-container">
+        Hover over your mouse to see registered gas station; click to see recorded data.
         <div className="paper map-node" ></div>
-        <div className="map-node" ref={mapRef} style={{width: 400, height: 300}} onMouseEnter={showMap} >{props.nickname}</div>
+        <div className="map-node" ref={mapRef} style={{width: 600, height: 400}} onMouseEnter={showMap} >{props.nickname}</div>
       </div>
     </div>
   )

@@ -1,28 +1,20 @@
 <% if logged_in? %>
-  <div class="row">
-    <aside class="col-md-4">
-      <section class="user_info">
-        <%= render 'shared/user_info' %>
-      </section>
-      <section class="stats">
-        <%= render 'shared/stats' %>
-      </section>
-    </aside>
-
-  </div>
+    <% content_for :react_pack do %>
+      <%= javascript_pack_tag 'interactive_maps' %> 
+    <% end %>    
+    <div id='root'></div>
 <% else %>
   <div class="center jumbotron">
-    <h1>Welcome to the Sample App</h1>
+    <h1>Welcome to the PaperPetrol.com</h1>
+    <h3>A website where you can request others to monitor the gas price at specific locations</h3>
+    <h3>All with help of an automated Chrome extension!</h3>
 
     <h2>
-      This is the home page for the
-      <a href="https://www.railstutorial.org/">Ruby on Rails Tutorial</a>
-      sample application.
+      TODOs:
+      1. tighten security in a few places
+      2. create modern user experience with help of various libraries
     </h2>
 
     <%= link_to "Sign up now!", signup_path, class: "btn btn-lg btn-primary" %>
   </div>
-
-  <%= link_to image_tag("rails.png", alt: "Rails logo"),
-              'http://rubyonrails.org/' %>
 <% end %>
