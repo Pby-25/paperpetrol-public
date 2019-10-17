@@ -1,4 +1,9 @@
 class StaticPagesController < ApplicationController
+  helper_method :main_page
+  def main_page
+    redirect_to "/main"
+  end
+
   def home
   end
 
