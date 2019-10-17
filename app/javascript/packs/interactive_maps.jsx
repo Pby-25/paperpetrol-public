@@ -189,10 +189,10 @@ function fetchStationBatch(){
 
 function sendToExtension(message){
   return new Promise((resolve)=>{
-    const extensionId = "fmmahhbmaeoldmpihmachpejdfohejoh";
+    const extensionId = "mbdpjbcmfccpbdmpaohnecngkbmjmbei";
+    const extensionLink = "https://chrome.google.com/webstore/detail/paperpetrol/" + extensionId;
     chrome.runtime.sendMessage(extensionId, message, (response) => {
-        if (chrome.runtime.lastError){
-          const extensionLink = "https://chrome.google.com/webstore/detail/paperpetrol/mbdpjbcmfccpbdmpaohnecngkbmjmbei"
+        if (!chrome || !(chrome.runtime) || chrome.runtime.lastError){
           window.open(extensionLink, '_blank');
         } else {
           resolve(response);
